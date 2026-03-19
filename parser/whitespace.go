@@ -3,7 +3,7 @@ package parser
 import (
 	"regexp"
 
-	"github.com/aymerick/raymond/ast"
+	"github.com/roundaboutluke/raymond/ast"
 )
 
 // whitespaceVisitor walks through the AST to perform whitespace control
@@ -211,6 +211,12 @@ func (v *whitespaceVisitor) VisitProgram(program *ast.Program) interface{} {
 		}
 
 		if b, ok := current.(*ast.BlockStatement); ok {
+			// Store the effective standalone flags (which account for
+			// surrounding context) on the block node. The evaluator uses
+			// these at render time to trim newlines when blocks are empty.
+			b.OpenStandalone = openStandalone
+			b.CloseStandalone = closeStandalone
+
 			if openStandalone {
 				prog := b.Program
 				if prog == nil {
