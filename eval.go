@@ -780,22 +780,7 @@ func (v *evalVisitor) VisitProgram(node *ast.Program) interface{} {
 	buf := new(bytes.Buffer)
 
 	for _, n := range node.Body {
-		str := Str(n.Accept(v))
-
-		// When a standalone block produces empty output, trim the
-		// surrounding newlines that were preserved at parse time for
-		// the non-empty case. This matches handlebars.js v4 behavior.
-		if str == "" {
-			if block, ok := n.(*ast.BlockStatement); ok {
-				if block.OpenStandalone && !block.CloseStandalone {
-					// Opening tag was standalone but closing was inline.
-					// Trim trailing \r?\n from the accumulated buffer.
-					trimStandaloneTrailingNewline(buf)
-				}
-			}
-		}
-
-		if str != "" {
+		if str := Str(n.Accept(v)); str != "" {
 			if _, err := buf.Write([]byte(str)); err != nil {
 				v.errPanic(err)
 			}
@@ -803,27 +788,6 @@ func (v *evalVisitor) VisitProgram(node *ast.Program) interface{} {
 	}
 
 	return buf.String()
-}
-
-// trimStandaloneTrailingNewline removes a trailing \r?\n (plus any
-// trailing spaces/tabs before it) from the buffer. This is used when
-// a standalone block produced empty output and the newline before the
-// block's opening tag should be consumed.
-func trimStandaloneTrailingNewline(buf *bytes.Buffer) {
-	b := buf.Bytes()
-	i := len(b)
-	// Skip trailing spaces/tabs
-	for i > 0 && (b[i-1] == ' ' || b[i-1] == '\t') {
-		i--
-	}
-	// Remove \n (and optional preceding \r)
-	if i > 0 && b[i-1] == '\n' {
-		i--
-		if i > 0 && b[i-1] == '\r' {
-			i--
-		}
-		buf.Truncate(i)
-	}
 }
 
 // VisitMustache implements corresponding Visitor interface method

@@ -240,11 +240,6 @@ type BlockStatement struct {
 	InverseStrip *Strip
 	CloseStrip   *Strip
 
-	// Standalone flags set during whitespace analysis. When the block
-	// produces empty output at render time, the evaluator uses these
-	// to trim surrounding newlines that are no longer needed.
-	OpenStandalone  bool
-	CloseStandalone bool
 }
 
 // NewBlockStatement instanciates a new block node.
